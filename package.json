@@ -1,0 +1,21 @@
+{
+  "name": "id-queue",
+  "version": "1.0.0",
+  "description": "this is id-queue package",
+  "main": "dist/index",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite-plugin-dts": "^4.5.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
+  },
+  "files": ["LinkedList", "Queue", "Map"],
+  "sideEffects": false,
+  "keywords": ["singleton", "proxy"],
+  "author": "yuzinan <1589937631@qq.com>",
+  "license": "MIT"
+}
