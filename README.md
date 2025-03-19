@@ -1,10 +1,10 @@
-# arg-singleton
+# id-queue
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/yvygyyth/arg-singleton)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/yvygyyth/id-queue)
 
 智能参数感知的单例/多例模式管理工具，根据初始化参数自动缓存实例。
 
-> 📦 ​**源码地址**: https://github.com/yvygyyth/arg-singleton
+> 📦 ​**源码地址**: https://github.com/yvygyyth/id-queue
 
 
 ### `TaskQueue` 方法文档：O(1) 时间复杂度操作详解
