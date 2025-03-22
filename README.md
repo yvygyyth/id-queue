@@ -2,7 +2,7 @@
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/yvygyyth/id-queue)
 
-智能参数感知的单例/多例模式管理工具，根据初始化参数自动缓存实例。
+快速增删改查的一个FIFO队列，用一点空间换取时间，先进先出。
 
 > 📦 ​**源码地址**: https://github.com/yvygyyth/id-queue
 
