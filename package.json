@@ -1,6 +1,6 @@
 {
   "name": "id-queue",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "this is id-queue package",
   "main": "dist/index",
   "type": "module",

@@ -32,6 +32,8 @@ constructor(initialTasks?: Map<string, T>)
   • `initialTasks`：可选，包含初始任务的 Map 对象，`key` 为任务 ID，`value` 为任务数据
 • **示例**：
   ```typescript
+  import { TaskQueue } from 'id-queue'
+
   // 空队列
   const queue1 = new TaskQueue<string>();
   
