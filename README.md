@@ -2,14 +2,7 @@
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/yvygyyth/id-queue)
 
-快速增删改查的一个FIFO队列，用一点空间换取时间，先进先出。
-
-> 📦 ​**源码地址**: https://github.com/yvygyyth/id-queue
-
-
-### `TaskQueue` 方法文档：O(1) 时间复杂度操作详解
-
-`TaskQueue` 是一个基于 **双向链表** 和 **哈希表** 实现的高性能队列，支持通过 ID 快速操作任务。以下方法的时间复杂度均为 `O(1)`，无论队列规模如何，操作耗时恒定。
+基于 **双向链表 + 哈希表** 实现的高性能任务队列，所有操作时间复杂度均为 `O(1)`，支持通过 ID 快速操作任务，适用于需要高频增删改查的场景。
 
 ---
 
@@ -18,112 +11,178 @@
 npm install id-queue
 ```
 
-### 1. `enqueue(id: string, data: T)`  
-**功能**: 添加任务到队列尾部。  
-**时间复杂度**: `O(1)`  
-**实现原理**:  
-• **哈希表快速查重**：通过 `Map.has(id)` 检查 ID 是否存在（`O(1)`）。
-• **链表尾部插入**：直接操作尾指针 (`tail`) 插入新节点，无需遍历链表。
-• **自动去重**：若 ID 已存在，先调用 `remove(id)`（`O(1)`）删除旧节点。
+## 核心特性
+| 特性                | 描述                                                                 |
+|---------------------|----------------------------------------------------------------------|
+| **时间复杂度**      | 所有操作 (`enqueue`/`dequeue`/`remove`/`update` 等) 均为 `O(1)`       |
+| **自动去重**        | 插入重复 ID 的任务时，自动移除旧任务并追加到队列尾部                  |
+| **双向操作**        | 支持从头部取出任务 (`dequeue`)，或通过 ID 删除任意位置任务 (`remove`) |
+| **内存效率**        | 用额外空间（哈希表）换取时间效率，总空间复杂度为 `O(2n)`              |
 
-**示例**:
+---
+
+## 完整 API 文档
+
+### 构造函数
 ```typescript
-const queue = new TaskQueue<number>();
-queue.enqueue("task1", 100); // 添加任务
-queue.enqueue("task2", 200);
-queue.enqueue("task1", 300); // 自动覆盖旧任务,顺序挪到末尾
+constructor(initialTasks?: Map<string, T>)
 ```
+• **功能**：初始化队列，可预加载任务
+• **参数**：
+  • `initialTasks`：可选，包含初始任务的 Map 对象，`key` 为任务 ID，`value` 为任务数据
+• **示例**：
+  ```typescript
+  // 空队列
+  const queue1 = new TaskQueue<string>();
+  
+  // 预加载任务 (ID → 数据)
+  const initialTasks = new Map([
+    ["task1", "Process payment"],
+    ["task2", "Generate report"]
+  ]);
+  const queue2 = new TaskQueue(initialTasks);
+  ```
 
 ---
 
-### 2. `dequeue(): T | null`  
-**功能**: 取出队列头部任务（最早添加的任务）。  
-**时间复杂度**: `O(1)`  
-**实现原理**:  
-• **直接访问头节点**：通过 `head` 指针获取第一个节点。
-• **更新头指针**：将 `head` 指向下一个节点，并断开原头节点的链接。
-• **哈希表同步删除**：通过 `Map.delete()` 移除哈希表中的记录。
+### 核心方法
 
-**示例**:
-```typescript
-const task = queue.dequeue(); // 取出 task1 (300)
-console.log(task); // 输出: 300
-```
+#### 1. `enqueue(id: string, data: T)`
+• **功能**：添加任务到队列尾部
+• **去重逻辑**：若 ID 已存在，先移除旧任务再追加新任务
+• **示例**：
+  ```typescript
+  queue.enqueue("task3", "Send email");
+  queue.enqueue("task2", "Updated report"); // 旧 task2 被移除，新 task2 追加到末尾
+  ```
 
----
+#### 2. `dequeue(): T | null`
+• **功能**：取出队列头部任务（先进先出）
+• **返回值**：任务数据，队列为空时返回 `null`
+• **示例**：
+  ```typescript
+  const task = queue.dequeue(); // 取出最早的任务
+  ```
 
-### 3. `remove(id: string): boolean`  
-**功能**: 通过 ID 删除任意位置的任务。  
-**时间复杂度**: `O(1)`  
-**实现原理**:  
-• **哈希表定位节点**：通过 `Map.get(id)` 直接找到目标节点（`O(1)`）。
-• **链表指针调整**：  
-  • 若节点有前驱 (`prev`)，将前驱的 `next` 指向后继。
-  • 若节点有后继 (`next`)，将后继的 `prev` 指向前驱。
-• **边界处理**：若删除的是头节点或尾节点，同步更新 `head` 或 `tail`。
+#### 3. `remove(id: string): boolean`
+• **功能**：通过 ID 删除任务
+• **返回值**：是否成功删除
+• **示例**：
+  ```typescript
+  if (queue.remove("expired_task")) {
+    console.log("任务已移除");
+  }
+  ```
 
-**示例**:
-```typescript
-queue.remove("task2"); // 删除中间任务
-queue.remove("task1"); // 删除头部任务
-```
+#### 4. `update(id: string, data: T): boolean`
+• **功能**：更新任务数据（不改变队列顺序）
+• **返回值**：是否找到并更新任务
+• **示例**：
+  ```typescript
+  queue.update("task1", { priority: "High" });
+  ```
 
----
+#### 5. `getTask(id: string): T | undefined`
+• **功能**：通过 ID 获取任务数据
+• **示例**：
+  ```typescript
+  const data = queue.getTask("task1"); // 返回 undefined 如果不存在
+  ```
 
-### 4. `getTask(id: string): T | undefined`  
-**功能**: 通过 ID 获取任务数据。  
-**时间复杂度**: `O(1)`  
-**实现原理**:  
-• **哈希表直接查询**：通过 `Map.get(id)` 直接返回节点数据。
+#### 6. `has(id: string): boolean`
+• **功能**：检查任务是否存在
+• **示例**：
+  ```typescript
+  if (queue.has("task1")) {
+    // 执行任务相关逻辑
+  }
+  ```
 
-**示例**:
-```typescript
-const data = queue.getTask("task1"); // 300
-```
+#### 7. `peek(): T | null`
+• **功能**：查看队列头部任务数据（不移除）
+• **示例**：
+  ```typescript
+  const nextTask = queue.peek(); // 预览下一个要处理的任务
+  ```
 
----
-
-### 5. `update(id: string, data: T): boolean`  
-**功能**: 通过 ID 更新任务数据。  
-**时间复杂度**: `O(1)`  
-**实现原理**:  
-• **哈希表定位节点**：通过 `Map.get(id)` 找到目标节点。
-• **直接修改数据**：更新节点的 `data` 属性，无需调整链表结构。
-
-**示例**:
-```typescript
-queue.update("task1", 500); // 更新任务数据
-```
-
----
-
-### 6. `has(id: string): boolean`  
-**功能**: 检查任务是否存在。  
-**时间复杂度**: `O(1)`  
-**实现原理**:  
-• **哈希表存在性检查**：通过 `Map.has(id)` 直接判断。
-
-**示例**:
-```typescript
-if (queue.has("task1")) {
-  // 任务存在
-}
-```
+#### 8. `clear(): void`
+• **功能**：清空队列
+• **示例**：
+  ```typescript
+  queue.clear(); // 重置队列状态
+  ```
 
 ---
 
-### 技术实现总结  
-`TaskQueue` 通过以下设计保证所有操作均为 `O(1)`：  
-1. **双向链表**：维护任务顺序，支持快速插入和删除。  
-   • `head` 和 `tail` 指针直接访问两端节点。
-   • 节点间通过 `prev` 和 `next` 指针快速调整链接。  
-2. **哈希表**：提供 ID 到节点的映射，实现快速查找。  
-   • `Map` 的 `get`、`set`、`delete` 操作均为 `O(1)`。  
-3. **去重机制**：在 `enqueue` 时自动移除旧 ID 的任务，保证数据一致性。
+### 属性访问器
+
+#### `size: number`
+• **功能**：获取当前队列任务数量
+• **示例**：
+  ```typescript
+  console.log(`当前队列长度: ${queue.size}`);
+  ```
+
+#### `queue: T[]`
+• **功能**：按顺序获取队列数据快照（从旧到新）
+• **性能**：时间复杂度 `O(n)`，空间复杂度 `O(n)`
+• **示例**：
+  ```typescript
+  const allTasks = queue.queue; // 返回数据数组
+  ```
 
 ---
 
-### 适用场景  
-• 需要频繁通过 ID 增删查改任务的场景（如任务调度系统）。
-• 需要保证任务顺序且高效操作的场景（如消息队列）。
-• 需要同时支持 FIFO 和随机删除的场景（如实时数据处理流水线）。
+## 性能对比
+| 操作          | 本实现 | 数组实现 | 说明                        |
+|---------------|--------|----------|-----------------------------|
+| `enqueue`      | O(1)   | O(n)     | 数组需遍历检查重复 ID        |
+| `dequeue`      | O(1)   | O(1)     | 数组的 shift 操作是 O(n)     |
+| `remove`       | O(1)   | O(n)     | 数组需遍历查找元素位置        |
+| `get/update`   | O(1)   | O(n)     | 数组需遍历查找元素            |
+
+---
+
+## 使用场景
+1. **任务调度系统**  
+   ```typescript
+   // 添加任务
+   scheduler.enqueue("job_001", { type: "email", to: "user@example.com" });
+   
+   // 工作线程循环处理
+   while (scheduler.size > 0) {
+     const task = scheduler.dequeue();
+     executeTask(task);
+   }
+   ```
+
+2. **实时数据流水线**  
+   ```typescript
+   // 数据到达时更新处理
+   dataStream.on("data", (id, payload) => {
+     if (queue.has(id)) {
+       queue.update(id, payload); // 更新未处理的数据
+     } else {
+       queue.enqueue(id, payload);
+     }
+   });
+   ```
+
+3. **用户操作队列**  
+   ```typescript
+   // 撤销/重做功能实现
+   class HistoryTracker {
+     private queue = new TaskQueue<Command>();
+     private maxSize = 100;
+   
+     add(command: Command) {
+       if (this.queue.size >= this.maxSize) {
+         this.queue.dequeue(); // 移除旧操作
+       }
+       this.queue.enqueue(command.id, command);
+     }
+   }
+   ```
+---
+
+[查看完整源码](https://github.com/yvygyyth/id-queue) | [提交 Issue](https://github.com/yvygyyth/id-queue/issues)
