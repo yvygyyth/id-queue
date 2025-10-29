@@ -1,13 +1,15 @@
+type Id = string | number;
+
 // 定义链表节点
 interface LinkedListNode<T> {
-    id: string
+    id: Id
     data: T
     next: LinkedListNode<T> | null
     prev: LinkedListNode<T> | null
 }
 
 export class TaskQueue<T> {
-    private map: Map<string, LinkedListNode<T>> // 用于 O(1) 通过 ID 查找任务
+    private map: Map<Id, LinkedListNode<T>> // 用于 O(1) 通过 ID 查找任务
     private head: LinkedListNode<T> | null // 头部指针（最早加入的任务）
     private tail: LinkedListNode<T> | null // 尾部指针（最新加入的任务）
 
@@ -24,7 +26,7 @@ export class TaskQueue<T> {
     }
 
     // 添加任务（O(1)）
-    enqueue(id: string, data: T) {
+    enqueue(id: Id, data: T) {
         if (this.has(id)) {
             this.remove(id)
         }
@@ -59,7 +61,7 @@ export class TaskQueue<T> {
     }
 
     // 通过 ID 删除任务（O(1)）
-    remove(id: string): boolean {
+    remove(id: Id): boolean {
         const node = this.map.get(id)
         if (!node) return false
 
@@ -80,12 +82,12 @@ export class TaskQueue<T> {
     }
 
     // 通过 ID 获取任务（O(1)）
-    getTask(id: string): T | undefined {
+    getTask(id: Id): T | undefined {
         return this.map.get(id)?.data
     }
 
     // 通过id更新任务
-    update(id: string, data: T): boolean {
+    update(id: Id, data: T): boolean {
         const node = this.map.get(id);
         if (!node) return false;
 
@@ -93,7 +95,7 @@ export class TaskQueue<T> {
         return true;
     }
 
-    has(id: string): boolean {
+    has(id: Id): boolean {
         return this.map.has(id);
     }
 
